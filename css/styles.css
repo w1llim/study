@@ -13,7 +13,7 @@
   --text-dim: #5c6472;
   --accent: #2f5bd0;
   --accent-ink: #ffffff;
-  --ec: #b45309;
+  --ec: #a54c08;
   --ec-soft: #fdf0e0;
   --se: #1d6f8b;
   --se-soft: #e2f1f6;
@@ -58,7 +58,7 @@
   --border: #d9dde5; --border-strong: #b9c0cc;
   --text: #171a1f; --text-dim: #5c6472;
   --accent: #2f5bd0; --accent-ink: #ffffff;
-  --ec: #b45309; --ec-soft: #fdf0e0;
+  --ec: #a54c08; --ec-soft: #fdf0e0;
   --se: #1d6f8b; --se-soft: #e2f1f6;
   --good: #17703c; --good-soft: #e4f4ea;
   --bad: #b3261e; --bad-soft: #fbe7e6;
@@ -195,7 +195,19 @@ h2 { font-size: 1.05rem; letter-spacing: -.01em; margin: 2rem 0 .75rem; }
 
 /* ---------- home: subjects ---------- */
 
-.subject { margin-bottom: 2.25rem; }
+.subjects { display: grid; gap: 2.25rem; }
+
+/* Two subjects abreast once there is genuinely room for them. */
+@media (min-width: 64rem) {
+  main { max-width: 76rem; }
+  .subjects { grid-template-columns: 1fr 1fr; gap: 2.75rem; }
+}
+
+/* Queried by the subject column's own width, not the window's — once the two
+   subjects sit side by side the viewport says nothing about how much room a
+   module grid actually has. Without container-query support the cards stay
+   one-up, which is a fine fallback. */
+.subject { container-type: inline-size; }
 
 .subject-head {
   display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
@@ -208,8 +220,8 @@ h2 { font-size: 1.05rem; letter-spacing: -.01em; margin: 2rem 0 .75rem; }
 .subject[data-subject="ec"] { --sub: var(--ec); --sub-soft: var(--ec-soft); }
 .subject[data-subject="se"] { --sub: var(--se); --sub-soft: var(--se-soft); }
 
-.modules { display: grid; gap: .7rem; }
-@media (min-width: 34rem) { .modules { grid-template-columns: 1fr 1fr; } }
+.modules { display: grid; gap: .7rem; grid-template-columns: 1fr; }
+@container (min-width: 30rem) { .modules { grid-template-columns: 1fr 1fr; } }
 
 .module-card {
   display: flex; flex-direction: column; gap: .55rem;
@@ -229,6 +241,14 @@ h2 { font-size: 1.05rem; letter-spacing: -.01em; margin: 2rem 0 .75rem; }
   display: flex; justify-content: space-between; gap: .75rem;
   font-size: .8125rem; color: var(--text-dim); font-variant-numeric: tabular-nums;
 }
+
+/* Whole-subject mixed pool — spans the grid under the four module cards. */
+.all-card {
+  grid-column: 1 / -1;
+  background: linear-gradient(180deg, var(--sub-soft, var(--surface-2)), var(--surface) 70%);
+  border-color: color-mix(in srgb, var(--sub, var(--border)) 40%, var(--border));
+}
+.all-card .m-name { color: var(--text-dim); font-weight: 500; font-size: .875rem; }
 
 .bar {
   height: 5px; border-radius: 999px; background: var(--surface-2);

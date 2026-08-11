@@ -77,6 +77,22 @@ export function getProgress(subject, module) {
 }
 
 /**
+ * The union of several modules' records, for an all-modules session. Question
+ * ids are unique within a subject (1–400, asserted at build time), so a plain
+ * union cannot collide.
+ */
+export function getCombinedProgress(subject, moduleNumbers) {
+  const merged = blank();
+  for (const number of moduleNumbers) {
+    const entry = getProgress(subject, number);
+    merged.seen.push(...entry.seen);
+    merged.correct.push(...entry.correct);
+    merged.wrong.push(...entry.wrong);
+  }
+  return merged;
+}
+
+/**
  * Record one answered question. Called after every answer so an app kill
  * mid-session loses nothing.
  */

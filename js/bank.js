@@ -21,13 +21,39 @@ export function getIndex() {
   return indexPromise;
 }
 
-/** One module's 100 questions. */
+/**
+ * One module's 100 questions. Every question is tagged with its own module
+ * number as it loads — an all-modules session spans four progress keys, so the
+ * module has to travel with the question rather than with the session.
+ */
 export function getModule(subject, module) {
   const key = `${subject}-${module}`;
   if (!cache.has(key)) {
     cache.set(
       key,
-      loadJSON(`data/${key}.json`).catch((err) => {
+      loadJSON(`data/${key}.json`)
+        .then((data) => ({ ...data, questions: data.questions.map((q) => ({ ...q, module: data.module })) }))
+        .catch((err) => {
+          cache.delete(key);
+          throw err;
+        }),
+    );
+  }
+  return cache.get(key);
+}
+
+/** Every question in a subject, flattened across its four modules. */
+export function getSubjectQuestions(subjectId) {
+  const key = `${subjectId}-*`;
+  if (!cache.has(key)) {
+    cache.set(
+      key,
+      (async () => {
+        const subject = await findSubject(subjectId);
+        if (!subject) throw new Error(`Unknown subject ${subjectId}`);
+        const loaded = await Promise.all(subject.modules.map((m) => getModule(subjectId, m.number)));
+        return loaded.flatMap((data) => data.questions);
+      })().catch((err) => {
         cache.delete(key);
         throw err;
       }),

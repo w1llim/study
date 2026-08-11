@@ -1,6 +1,6 @@
-// Session construction and scoring. No DOM in here.
-
-import { getProgress } from './store.js';
+// Session construction and scoring. No DOM and no storage in here — the caller
+// resolves progress and passes it in, so this file never has to know whether a
+// session covers one module or a whole subject.
 
 /** Fisher–Yates, on a copy. */
 export function shuffle(items) {
@@ -12,10 +12,13 @@ export function shuffle(items) {
   return out;
 }
 
+// 100 is disabled automatically when fewer than 100 are unseen, so it only
+// really shows up for the 400-question all-modules pool.
 export const SIZES = [
   { value: 10, label: '10' },
   { value: 25, label: '25' },
   { value: 50, label: '50' },
+  { value: 100, label: '100' },
   { value: 'all', label: 'All unseen' },
   { value: 'endless', label: 'Endless' },
 ];
@@ -48,9 +51,12 @@ export function poolFor(questions, progress, mode) {
 /**
  * Build a session. Returns null when the chosen mode has nothing to serve, so
  * the caller can explain why instead of opening an empty quiz.
+ *
+ * `module` is a number, or the string 'all' for a whole-subject session.
+ * `progress` is resolved by the caller — one module's record, or the union of
+ * a subject's four.
  */
-export function buildSession(subject, module, questions, { mode = 'new', size = 25 } = {}) {
-  const progress = getProgress(subject, module);
+export function buildSession(subject, module, questions, { mode = 'new', size = 25, progress } = {}) {
   const pool = poolFor(questions, progress, mode);
   if (!pool.length) return null;
 

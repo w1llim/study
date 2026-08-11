@@ -4,14 +4,15 @@
 // escaped-then-inlined at build time by tools/build-bank.mjs. Anything that
 // comes from a route or from localStorage goes through textContent.
 
-import { getIndex, getModule, findSubject } from './bank.js';
+import { getIndex, getModule, getSubjectQuestions, findSubject } from './bank.js';
 import {
-  getProgress, recordAnswer, resetAll, resetSubject,
+  getProgress, getCombinedProgress, recordAnswer, resetAll, resetSubject,
   getSettings, setSetting, saveSession, loadSession, clearSession, isPersistent,
 } from './store.js';
-import { SIZES, buildSession, poolFor, scoreOf, missedIn, isResumable, answeredCount } from './quiz.js';
+import { SIZES, buildSession, poolFor, scoreOf, missedIn, isResumable } from './quiz.js';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
+const ALL = 'all'; // a session's module, when it spans the whole subject
 const screen = document.getElementById('screen');
 const announcer = document.getElementById('announcer');
 const scoreBadge = document.getElementById('session-score');
@@ -57,6 +58,20 @@ function say(message) {
 }
 
 const pct = (n, d) => (d ? Math.round((n / d) * 100) : 0);
+
+/** One module's progress, or the union of a subject's four. */
+function progressFor(subjectId, module, moduleNumbers) {
+  return module === ALL
+    ? getCombinedProgress(subjectId, moduleNumbers)
+    : getProgress(subjectId, module);
+}
+
+/** The questions a session draws from. */
+function questionsFor(subjectId, module) {
+  return module === ALL ? getSubjectQuestions(subjectId) : getModule(subjectId, module).then((d) => d.questions);
+}
+
+const moduleLabel = (module) => (module === ALL ? 'All modules' : `Module ${module}`);
 
 function fatal(message) {
   paint(
@@ -114,11 +129,12 @@ async function renderHome() {
   const parked = loadSession();
   if (isResumable(parked)) {
     const subject = index.subjects.find((s) => s.id === parked.subject);
-    const module = subject?.modules.find((m) => m.number === parked.module);
-    if (module) {
+    // 'all' matches no module, so it needs its own pass or the banner vanishes.
+    const known = subject && (parked.module === ALL || subject.modules.some((m) => m.number === parked.module));
+    if (known) {
       nodes.push(
         el('div', { class: 'note warn', style: 'margin-bottom:1.5rem' }, [
-          el('span', { text: `Unfinished session: ${subject.short} module ${module.number}, question ${parked.pos + 1} of ${parked.ids.length}. ` }),
+          el('span', { text: `Unfinished session: ${subject.short} ${moduleLabel(parked.module).toLowerCase()}, question ${parked.pos + 1} of ${parked.ids.length}. ` }),
           el('span', { class: 'btn-row', style: 'margin-top:.6rem' }, [
             el('a', { class: 'btn btn-primary', href: '#/quiz', text: 'Resume' }),
             el('button', {
@@ -131,6 +147,7 @@ async function renderHome() {
     }
   }
 
+  const sections = [];
   for (const subject of index.subjects) {
     const totals = subject.modules.reduce(
       (acc, m) => {
@@ -159,7 +176,22 @@ async function renderHome() {
       ]);
     });
 
-    nodes.push(
+    // Mixed pool across the whole subject — spans the grid under the modules.
+    cards.push(
+      el('a', { class: 'module-card all-card', href: `#/m/${subject.id}/${ALL}` }, [
+        el('span', { class: 'm-num', text: 'All modules' }),
+        el('span', { class: 'm-name', text: `Mixed questions from all four modules` }),
+        el('span', { class: `bar${totals.seen >= totals.count ? ' done' : ''}` }, [
+          el('span', { style: `width:${pct(totals.seen, totals.count)}%` }),
+        ]),
+        el('span', { class: 'm-stats' }, [
+          el('span', { text: `${totals.seen} / ${totals.count} seen` }),
+          el('span', { text: totals.seen ? `${pct(totals.correct, totals.seen)}% correct` : `${totals.count} questions` }),
+        ]),
+      ]),
+    );
+
+    sections.push(
       el('section', { class: 'subject', dataset: { subject: subject.id } }, [
         el('div', { class: 'subject-head' }, [
           el('h2', { text: subject.name }),
@@ -175,6 +207,7 @@ async function renderHome() {
     );
   }
 
+  nodes.push(el('div', { class: 'subjects' }, sections));
   nodes.push(renderResetPanel(index));
   paint(...nodes);
 }
@@ -229,17 +262,29 @@ function renderResetPanel(index) {
 
 /* ---------- module start panel ---------- */
 
-async function renderStart(subjectId, moduleNumber) {
+async function renderStart(subjectId, moduleParam) {
   session = null;
   updateBadge();
 
   const subject = await findSubject(subjectId);
-  const meta = subject?.modules.find((m) => m.number === Number(moduleNumber));
-  if (!subject || !meta) return fatal('That module does not exist.');
+  if (!subject) return fatal('That subject does not exist.');
 
-  const data = await getModule(subject.id, meta.number);
-  const progress = getProgress(subject.id, meta.number);
-  const unseen = poolFor(data.questions, progress, 'new').length;
+  const isAll = moduleParam === ALL;
+  const numbers = subject.modules.map((m) => m.number);
+  // A synthetic module record keeps the rest of this function uniform.
+  const meta = isAll
+    ? {
+        number: ALL,
+        name: 'All modules',
+        count: subject.modules.reduce((n, m) => n + m.count, 0),
+        topics: [],
+      }
+    : subject.modules.find((m) => m.number === Number(moduleParam));
+  if (!meta) return fatal('That module does not exist.');
+
+  const list = await questionsFor(subject.id, meta.number);
+  const progress = progressFor(subject.id, meta.number, numbers);
+  const unseen = poolFor(list, progress, 'new').length;
   const missed = progress.wrong.length;
 
   let size = getSettings().lastSize;
@@ -266,28 +311,31 @@ async function renderStart(subjectId, moduleNumber) {
     });
   });
 
+  const begin = (mode, chosen = size) =>
+    start(subject.id, meta.number, list, { mode, size: chosen, progress: progressFor(subject.id, meta.number, numbers) });
+
   const actions = el('div', { class: 'btn-row' }, [
     el('button', {
       class: 'btn btn-primary', type: 'button',
       text: unseen ? 'Start' : 'Start (endless)',
-      on: { click: () => start(subject.id, meta.number, data.questions, { mode: unseen ? (size === 'endless' ? 'endless' : 'new') : 'endless', size }) },
+      on: { click: () => begin(unseen ? (size === 'endless' ? 'endless' : 'new') : 'endless') },
     }),
     missed > 0 &&
       el('button', {
         class: 'btn', type: 'button', text: `Practise missed (${missed})`,
-        on: { click: () => start(subject.id, meta.number, data.questions, { mode: 'missed', size: 'all' }) },
+        on: { click: () => begin('missed', 'all') },
       }),
     progress.seen.length > 0 &&
       el('button', {
-        class: 'btn', type: 'button', text: 'Redo whole module',
-        on: { click: () => start(subject.id, meta.number, data.questions, { mode: 'redo', size }) },
+        class: 'btn', type: 'button', text: isAll ? 'Redo whole subject' : 'Redo whole module',
+        on: { click: () => begin('redo') },
       }),
   ].filter(Boolean));
 
   paint(
     el('p', {}, [el('a', { class: 'btn btn-quiet', href: '#/', text: '← All modules' })]),
     el('div', { class: 'start-card', dataset: { subject: subject.id } }, [
-      el('p', { class: 'eyebrow', text: `${subject.name} · Module ${meta.number}` }),
+      el('p', { class: 'eyebrow', text: isAll ? subject.name : `${subject.name} · Module ${meta.number}` }),
       el('h1', { text: meta.name }),
       el('div', { class: 'stat-row' }, [
         el('span', { class: 'stat' }, [el('b', { text: String(unseen) }), el('span', { text: 'unseen' })]),
@@ -299,16 +347,27 @@ async function renderStart(subjectId, moduleNumber) {
         el('span', { class: 'stat' }, [el('b', { text: String(missed) }), el('span', { text: 'to revisit' })]),
       ]),
       unseen === 0
-        ? el('p', { class: 'note warn', text: 'You have seen every question in this module. Endless keeps going over old ones, or clear this module’s progress from the home screen.' })
+        ? el('p', {
+            class: 'note warn',
+            text: `You have seen every question in ${isAll ? 'this subject' : 'this module'}. Endless keeps going over old ones, or clear ${isAll ? 'the subject' : 'the module'} from the home screen.`,
+          })
         : el('fieldset', {}, [
             el('legend', { text: 'How many questions?' }),
             el('div', { class: 'sizes' }, sizeButtons),
           ]),
       actions,
-      el('details', { class: 'topic-list' }, [
-        el('summary', { text: `${meta.topics.length} topics in this module` }),
-        el('ul', {}, meta.topics.map((t) => el('li', { text: t }))),
-      ]),
+      isAll
+        ? el('details', { class: 'topic-list' }, [
+            el('summary', { text: `Drawing from all ${subject.modules.length} modules` }),
+            el('ul', {}, subject.modules.map((m) => {
+              const p = getProgress(subject.id, m.number);
+              return el('li', { text: `Module ${m.number} — ${m.name} (${p.seen.length}/${m.count} seen)` });
+            })),
+          ])
+        : el('details', { class: 'topic-list' }, [
+            el('summary', { text: `${meta.topics.length} topics in this module` }),
+            el('ul', {}, meta.topics.map((t) => el('li', { text: t }))),
+          ]),
     ]),
   );
 }
@@ -335,8 +394,7 @@ async function ensureSession() {
   if (session && byId.size) return true;
   const parked = loadSession();
   if (!isResumable(parked)) return false;
-  const data = await getModule(parked.subject, parked.module);
-  questions = data.questions;
+  questions = await questionsFor(parked.subject, parked.module);
   byId = new Map(questions.map((q) => [q.id, q]));
   session = parked;
   return true;
@@ -375,7 +433,7 @@ async function renderQuiz() {
     el('div', { class: 'quiz-head' }, [
       el('span', { class: 'crumb' }, [
         el('b', { text: subjectShort }),
-        ` · Module ${session.module}`,
+        ` · ${moduleLabel(session.module)}`,
       ]),
       el('span', {
         class: 'crumb',
@@ -385,7 +443,11 @@ async function renderQuiz() {
     session.endless
       ? null
       : el('div', { class: 'progress-track' }, [el('span', { style: `width:${pct(session.pos, total)}%` })]),
-    el('span', { class: 'chip', text: question.topic }),
+    el('span', {
+      class: 'chip',
+      // In a mixed session the topic alone doesn't say where a question came from.
+      text: session.module === ALL ? `Module ${question.module} · ${question.topic}` : question.topic,
+    }),
     el('p', { class: 'stem', html: question.stem }),
     el('div', { class: 'options', id: 'options' }, optionNodes),
     el('div', { id: 'verdict' }),
@@ -413,7 +475,9 @@ function choose(index) {
   const isCorrect = index === question.answer;
 
   session.answers[question.id] = index;
-  recordAnswer(session.subject, session.module, question.id, isCorrect);
+  // Always the question's own module, so a mixed session writes to the right
+  // four keys and shares progress with the per-module screens.
+  recordAnswer(session.subject, question.module, question.id, isCorrect);
 
   const buttons = [...document.getElementById('options').children];
   buttons.forEach((button, i) => {
@@ -451,12 +515,15 @@ function choose(index) {
   next.focus({ preventScroll: true });
 }
 
+/** The modules the loaded question list actually covers — one, or all four. */
+const loadedModules = () => [...new Set(questions.map((q) => q.module))];
+
 function advance() {
   session.pos++;
   // Endless mode keeps going by reshuffling everything it has already used.
   if (session.endless && session.pos >= session.ids.length) {
     session.ids = session.ids.concat(
-      poolFor(questions, getProgress(session.subject, session.module), 'endless'),
+      poolFor(questions, progressFor(session.subject, session.module, loadedModules()), 'endless'),
     );
   }
   if (session.pos >= session.ids.length) return finish();
@@ -484,7 +551,8 @@ function renderResults() {
 
   const { correct, total } = scoreOf(done, byId);
   const missed = missedIn(done, byId);
-  const progress = getProgress(done.subject, done.module);
+  const modules = loadedModules();
+  const progress = progressFor(done.subject, done.module, modules);
 
   if (!total) {
     paint(
@@ -498,7 +566,10 @@ function renderResults() {
 
   const reviewNodes = missed.map(({ question, chosen }) =>
     el('article', { class: 'review-item' }, [
-      el('span', { class: 'chip', text: question.topic }),
+      el('span', {
+        class: 'chip',
+        text: done.module === ALL ? `Module ${question.module} · ${question.topic}` : question.topic,
+      }),
       el('p', { class: 'r-stem', html: question.stem }),
       el('p', { class: 'r-line r-yours' }, [
         el('span', { class: 'tag', text: 'You said' }),
@@ -512,16 +583,17 @@ function renderResults() {
     ]),
   );
 
-  const again = () =>
+  const replay = (mode, size) =>
     start(done.subject, done.module, questions, {
-      mode: done.mode === 'missed' ? 'missed' : 'new',
-      size: done.requested,
+      mode, size,
+      progress: progressFor(done.subject, done.module, modules),
     });
+  const again = () => replay(done.mode === 'missed' ? 'missed' : 'new', done.requested);
 
   paint(
     el('div', { class: 'score-hero', dataset: { subject: done.subject } }, [
       el('div', { class: 'pct', text: `${pct(correct, total)}%` }),
-      el('p', { class: 'frac', text: `${correct} of ${total} correct · ${done.subject.toUpperCase()} module ${done.module}` }),
+      el('p', { class: 'frac', text: `${correct} of ${total} correct · ${done.subject.toUpperCase()} ${moduleLabel(done.module).toLowerCase()}` }),
     ]),
     missed.length
       ? el('h2', { text: `Review — ${missed.length} to go back over` })
@@ -532,7 +604,7 @@ function renderResults() {
       progress.wrong.length > 0 &&
         el('button', {
           class: 'btn', type: 'button', text: `Practise missed (${progress.wrong.length})`,
-          on: { click: () => start(done.subject, done.module, questions, { mode: 'missed', size: 'all' }) },
+          on: { click: () => replay('missed', 'all') },
         }),
       el('a', { class: 'btn btn-quiet', href: '#/', text: 'All modules' }),
     ].filter(Boolean)),

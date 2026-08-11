@@ -1,0 +1,137 @@
+{
+  "version": "2026-08-11",
+  "subjects": [
+    {
+      "id": "ec",
+      "name": "Enterprise Computing",
+      "short": "EC",
+      "modules": [
+        {
+          "number": 1,
+          "name": "Data Science",
+          "count": 100,
+          "file": "data/ec-1.json",
+          "topics": [
+            "Data types, NOIR and informatics",
+            "Collection, sampling and data quality",
+            "Blockchain",
+            "Big data, warehousing and mining",
+            "Databases, SQL and ERDs",
+            "Storage, security, law and machine learning",
+            "Application and analysis"
+          ]
+        },
+        {
+          "number": 2,
+          "name": "Data Visualisation",
+          "count": 100,
+          "file": "data/ec-2.json",
+          "topics": [
+            "Purposes and choosing a visualisation",
+            "Analytics, patterns and evolution",
+            "OLAP and warehousing",
+            "Integrity, quality and bias",
+            "Tools, interrogation, UX and creation",
+            "Application and analysis"
+          ]
+        },
+        {
+          "number": 3,
+          "name": "Intelligent Systems",
+          "count": 100,
+          "file": "data/ec-3.json",
+          "topics": [
+            "Systems, agents and DSS",
+            "Expert systems",
+            "IoT, hardware and computational thinking",
+            "IoT networks, simulation and automation",
+            "Surveillance, disruption and ethics",
+            "Application and analysis"
+          ]
+        },
+        {
+          "number": 4,
+          "name": "Enterprise Project",
+          "count": 100,
+          "file": "data/ec-4.json",
+          "topics": [
+            "Identifying and defining",
+            "Changing nature of work",
+            "Researching and planning",
+            "Producing and implementing",
+            "Testing and evaluating",
+            "Application and analysis"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "se",
+      "name": "Software Engineering",
+      "short": "SE",
+      "modules": [
+        {
+          "number": 1,
+          "name": "Secure Software Architecture",
+          "count": 100,
+          "file": "data/se-1.json",
+          "topics": [
+            "Benefits, the secure SDLC and end users",
+            "CIA and AAA",
+            "Cryptography",
+            "Sandboxing, privacy and compliance",
+            "Resilience, recovery and code security strategies",
+            "Defensive input handling and safe APIs",
+            "User action, file and hardware vulnerabilities",
+            "Impact and case study",
+            "Application and analysis"
+          ]
+        },
+        {
+          "number": 2,
+          "name": "Programming for the Web",
+          "count": 100,
+          "file": "data/se-2.json",
+          "topics": [
+            "The web, packets and protocols",
+            "Big data, W3C and web architecture",
+            "Client, server and databases",
+            "CSS, version control and libraries",
+            "Load times, PWAs and accessibility",
+            "SQL",
+            "Application and analysis"
+          ]
+        },
+        {
+          "number": 3,
+          "name": "Software Automation",
+          "count": 100,
+          "file": "data/se-3.json",
+          "topics": [
+            "DevOps, RPA, BPA and MLOps",
+            "Training types and applications",
+            "Models — decision trees and neural networks",
+            "Algorithms",
+            "Programming ML with OOP",
+            "Impact, human behaviour and bias",
+            "Application and analysis"
+          ]
+        },
+        {
+          "number": 4,
+          "name": "The Software Engineering Project",
+          "count": 100,
+          "file": "data/se-4.json",
+          "topics": [
+            "Identifying and defining",
+            "Research, planning and approaches",
+            "Modelling tools",
+            "Producing and implementing",
+            "Testing and evaluating",
+            "Application and analysis"
+          ]
+        }
+      ]
+    }
+  ]
+}

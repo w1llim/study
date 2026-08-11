@@ -201,12 +201,15 @@ function main() {
   if (argv[1]) SUBJECTS[1].source = argv[1];
 
   const dataDir = join(ROOT, 'data');
-  mkdirSync(dataDir, { recursive: true });
 
+  // Parse everything before writing anything, so a failure in the second
+  // subject cannot leave data/ half-updated from the first.
+  const parsed = SUBJECTS.map((subject) => ({ subject, modules: parseBank(subject) }));
+
+  mkdirSync(dataDir, { recursive: true });
   const index = { version: new Date().toISOString().slice(0, 10), subjects: [] };
 
-  for (const subject of SUBJECTS) {
-    const modules = parseBank(subject);
+  for (const { subject, modules } of parsed) {
     const entry = { id: subject.id, name: subject.name, short: subject.short, modules: [] };
 
     for (const m of modules) {

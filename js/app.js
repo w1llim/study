@@ -123,7 +123,7 @@ async function renderHome() {
   const index = await getIndex();
   const nodes = [
     el('h1', { text: 'Question Bank' }),
-    el('p', { class: 'lede', text: '800 multiple-choice questions across Enterprise Computing and Software Engineering. Pick a module — questions are randomised and never repeat until you have seen them all.' }),
+    el('p', { class: 'lede', text: '2000 multiple-choice questions across Enterprise Computing and Software Engineering. Pick a module — questions are randomised and never repeat until you have seen them all.' }),
   ];
 
   const parked = loadSession();

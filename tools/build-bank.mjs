@@ -171,17 +171,25 @@ function parseBank(subject) {
   }
 
   // Structural assertions — loud failure beats a silently short bank.
-  if (modules.length !== 4) {
-    throw new BuildError(`${file}: expected 4 modules, found ${modules.length}`);
+  // Now expecting 8 modules (4 pairs of Set A and Set B)
+  if (modules.length !== 8) {
+    throw new BuildError(`${file}: expected 8 modules (4 pairs of Set A/B), found ${modules.length}`);
   }
+
+  // Verify the structure: pairs of (Set A: 100 questions, Set B: 150 questions)
   let expected = 1;
-  for (const m of modules) {
-    if (m.questions.length !== 100) {
-      throw new BuildError(`${file}: module ${m.number} has ${m.questions.length} questions, expected 100`);
+  for (let i = 0; i < modules.length; i++) {
+    const m = modules[i];
+    const isSetB = i % 2 === 1;
+    const expectedCount = isSetB ? 150 : 100;
+
+    if (m.questions.length !== expectedCount) {
+      throw new BuildError(`${file}: module ${i + 1} has ${m.questions.length} questions, expected ${expectedCount}`);
     }
+
     for (const q of m.questions) {
       if (q.id !== expected) {
-        throw new BuildError(`${file}: expected Q${expected}, found Q${q.id} (ids must be contiguous 1–400)`);
+        throw new BuildError(`${file}: expected Q${expected}, found Q${q.id} (ids must be contiguous 1–1000)`);
       }
       if (q.options.length !== 4) {
         throw new BuildError(`${file}: Q${q.id} has ${q.options.length} options`);
@@ -190,9 +198,19 @@ function parseBank(subject) {
       expected++;
     }
   }
-  if (expected !== 401) throw new BuildError(`${file}: expected 400 questions, found ${expected - 1}`);
+  if (expected !== 1001) throw new BuildError(`${file}: expected 1000 questions, found ${expected - 1}`);
 
-  return modules;
+  // Renumber modules 1-8 (they come from markdown as 1, 1 Set B, 2, 2 Set B, etc.)
+  const renumberedModules = [];
+  for (let i = 0; i < modules.length; i++) {
+    renumberedModules.push({
+      number: i + 1,
+      name: modules[i].name,
+      questions: modules[i].questions,
+    });
+  }
+
+  return renumberedModules;
 }
 
 function main() {
@@ -230,11 +248,11 @@ function main() {
     }
 
     index.subjects.push(entry);
-    console.log(`${subject.short} 400 ✓`);
+    console.log(`${subject.short} 1000 ✓`);
   }
 
   writeFileSync(join(dataDir, 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-  console.log('\nWrote data/index.json and 8 module files.');
+  console.log('\nWrote data/index.json and 20 module files.');
 }
 
 try {

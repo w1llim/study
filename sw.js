@@ -8,7 +8,7 @@
  * changes, so an unchanged name serves stale code forever.
  */
 
-const CACHE = 'study-v4';
+const CACHE = 'study-v5';
 
 const PRECACHE = [
   './',
@@ -28,18 +28,10 @@ const PRECACHE = [
   'data/ec-2.json',
   'data/ec-3.json',
   'data/ec-4.json',
-  'data/ec-5.json',
-  'data/ec-6.json',
-  'data/ec-7.json',
-  'data/ec-8.json',
   'data/se-1.json',
   'data/se-2.json',
   'data/se-3.json',
   'data/se-4.json',
-  'data/se-5.json',
-  'data/se-6.json',
-  'data/se-7.json',
-  'data/se-8.json',
 ];
 
 self.addEventListener('install', (event) => {

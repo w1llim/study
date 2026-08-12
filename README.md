@@ -1,7 +1,7 @@
 # Question Bank
 
 Offline revision PWA for HSC **Enterprise Computing** and **Software Engineering** — 2000
-multiple-choice questions (8 modules × 250 per subject, combining Set A and Set B), each with the explanation from the
+multiple-choice questions (4 modules × 250 per subject, combining Set A and Set B), each with the explanation from the
 source notes.
 
 Live at <https://w1llim.github.io/study/>.
@@ -10,7 +10,7 @@ Vanilla HTML, CSS and JavaScript. No framework, no bundler, no runtime dependenc
 
 ## Using it
 
-Open the site and pick a **module** (100–150 questions) or **All modules** (a mixed pool of all 1000
+Open the site and pick a **module** (250 questions) or **All modules** (a mixed pool of all 1000
 for that subject — closer to what an actual exam throws at you). Choose how many questions:
 
 | Size | What it does |
@@ -88,8 +88,8 @@ After editing either note:
 node tools/build-bank.mjs
 ```
 
-It rewrites `data/index.json` and the 16 module files, and prints `EC 1000 ✓ / SE 1000 ✓`.
-The script asserts 8 modules (4 pairs of Set A and Set B), 1000 questions per subject, contiguous ids 1–1000, exactly four options
+It rewrites `data/index.json` and the 8 module files, and prints `EC 1000 ✓ / SE 1000 ✓`.
+The script asserts 4 modules with 250 questions each, 1000 questions per subject, contiguous ids 1–1000, exactly four options
 and a valid A–D answer — **any deviation aborts the build with a file:line**, so a malformed
 question is caught rather than silently dropped.
 
@@ -120,7 +120,7 @@ would make those explanations wrong. Only question order is randomised.
 ### Adding or editing a question
 
 1. Edit the Obsidian note, following the grammar above exactly. Questions are numbered globally
-   per subject (Q1–Q1000) and **must stay contiguous**, with 250 per module (100 Set A + 150 Set B) — the build enforces
+   per subject (Q1–Q1000) and **must stay contiguous**, with 250 per module — the build enforces
    both, so adding a question means renumbering the ones after it.
 2. `node tools/build-bank.mjs`
 3. Bump `CACHE` in `sw.js` before deploying, or installed copies keep the old questions.
@@ -157,8 +157,8 @@ DevTools → Application → Service Workers → Unregister, then hard-reload.
 **Redo whole module**, or clear that subject from the home screen.
 
 **Offline does not work.** The app must be loaded online once so the service worker can
-precache the shell and all 16 data files. Check DevTools → Application → Cache Storage for a
-single `study-vN` holding 29 entries (shell + 16 modules + index).
+precache the shell and all 8 data files. Check DevTools → Application → Cache Storage for a
+single `study-vN` holding 21 entries (shell + 8 modules + index).
 
 **Progress vanished.** It is per-browser `localStorage` — a different browser, a different
 device, or clearing site data all start from zero. It is deliberately not synced.

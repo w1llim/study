@@ -9,7 +9,7 @@
         {
           "number": 1,
           "name": "Data Science",
-          "count": 100,
+          "count": 250,
           "file": "data/ec-1.json",
           "topics": [
             "Data types, NOIR and informatics",
@@ -18,107 +18,64 @@
             "Big data, warehousing and mining",
             "Databases, SQL and ERDs",
             "Storage, security, law and machine learning",
-            "Application and analysis"
-          ]
-        },
-        {
-          "number": 2,
-          "name": "Data Science · Set B",
-          "count": 150,
-          "file": "data/ec-2.json",
-          "topics": [
+            "Application and analysis",
             "Data, information and levels of measurement",
-            "Collection, sampling and data quality",
             "Blockchain, big data and mining",
             "Databases, spreadsheets and SQL",
             "Storage, law, ethics and machine learning",
-            "Application and analysis",
             "Mixed review — Data Science"
           ]
         },
         {
-          "number": 3,
+          "number": 2,
           "name": "Data Visualisation",
-          "count": 100,
-          "file": "data/ec-3.json",
+          "count": 250,
+          "file": "data/ec-2.json",
           "topics": [
             "Purposes and choosing a visualisation",
             "Analytics, patterns and evolution",
             "OLAP and warehousing",
             "Integrity, quality and bias",
             "Tools, interrogation, UX and creation",
-            "Application and analysis"
-          ]
-        },
-        {
-          "number": 4,
-          "name": "Data Visualisation · Set B",
-          "count": 150,
-          "file": "data/ec-4.json",
-          "topics": [
+            "Application and analysis",
             "Purpose, chart choice and perception",
-            "Analytics, patterns and evolution",
             "OLAP, warehousing and integrity",
             "Bias and misleading visuals",
             "Tools, interrogation and UX",
-            "Application and analysis",
             "Mixed review — Data Visualisation"
           ]
         },
         {
-          "number": 5,
+          "number": 3,
           "name": "Intelligent Systems",
-          "count": 100,
-          "file": "data/ec-5.json",
+          "count": 250,
+          "file": "data/ec-3.json",
           "topics": [
             "Systems, agents and DSS",
             "Expert systems",
             "IoT, hardware and computational thinking",
             "IoT networks, simulation and automation",
             "Surveillance, disruption and ethics",
-            "Application and analysis"
-          ]
-        },
-        {
-          "number": 6,
-          "name": "Intelligent Systems · Set B",
-          "count": 150,
-          "file": "data/ec-6.json",
-          "topics": [
+            "Application and analysis",
             "Systems, agents and decision support",
             "Expert systems and inference",
-            "IoT, hardware and computational thinking",
-            "IoT networks, simulation and automation",
-            "Surveillance, disruption and ethics",
-            "Application and analysis",
             "Mixed review — Intelligent Systems"
           ]
         },
         {
-          "number": 7,
+          "number": 4,
           "name": "Enterprise Project",
-          "count": 100,
-          "file": "data/ec-7.json",
+          "count": 250,
+          "file": "data/ec-4.json",
           "topics": [
             "Identifying and defining",
             "Changing nature of work",
             "Researching and planning",
             "Producing and implementing",
             "Testing and evaluating",
-            "Application and analysis"
-          ]
-        },
-        {
-          "number": 8,
-          "name": "Enterprise Project · Set B",
-          "count": 150,
-          "file": "data/ec-8.json",
-          "topics": [
-            "Identifying and defining",
-            "Changing nature of work",
+            "Application and analysis",
             "Researching, planning and modelling",
             "Producing, implementing and testing",
-            "Application and analysis",
             "Mixed review — Enterprise Project"
           ]
         }
@@ -132,7 +89,7 @@
         {
           "number": 1,
           "name": "Secure Software Architecture",
-          "count": 100,
+          "count": 250,
           "file": "data/se-1.json",
           "topics": [
             "Benefits, the secure SDLC and end users",
@@ -143,19 +100,8 @@
             "Defensive input handling and safe APIs",
             "User action, file and hardware vulnerabilities",
             "Impact and case study",
-            "Application and analysis"
-          ]
-        },
-        {
-          "number": 2,
-          "name": "Secure Software Architecture · Set B",
-          "count": 150,
-          "file": "data/se-2.json",
-          "topics": [
-            "Benefits, the secure SDLC and end users",
+            "Application and analysis",
             "CIA, AAA and access control",
-            "Cryptography",
-            "Sandboxing, privacy and compliance",
             "Resilience, recovery and testing strategies",
             "Defensive input handling, APIs and efficiency",
             "Vulnerabilities and OWASP",
@@ -163,10 +109,10 @@
           ]
         },
         {
-          "number": 3,
+          "number": 2,
           "name": "Programming for the Web",
-          "count": 100,
-          "file": "data/se-3.json",
+          "count": 250,
+          "file": "data/se-2.json",
           "topics": [
             "The web, packets and protocols",
             "Big data, W3C and web architecture",
@@ -174,29 +120,19 @@
             "CSS, version control and libraries",
             "Load times, PWAs and accessibility",
             "SQL",
-            "Application and analysis"
-          ]
-        },
-        {
-          "number": 4,
-          "name": "Programming for the Web · Set B",
-          "count": 150,
-          "file": "data/se-4.json",
-          "topics": [
+            "Application and analysis",
             "Data transfer, protocols and the request lifecycle",
             "Big data, W3C and architecture",
             "Client, server, databases and tooling",
-            "CSS, version control and libraries",
             "Load times, PWAs, accessibility and SQL",
-            "Application and analysis",
             "Mixed review — Programming for the Web"
           ]
         },
         {
-          "number": 5,
+          "number": 3,
           "name": "Software Automation",
-          "count": 100,
-          "file": "data/se-5.json",
+          "count": 250,
+          "file": "data/se-3.json",
           "topics": [
             "DevOps, RPA, BPA and MLOps",
             "Training types and applications",
@@ -204,44 +140,24 @@
             "Algorithms",
             "Programming ML with OOP",
             "Impact, human behaviour and bias",
-            "Application and analysis"
-          ]
-        },
-        {
-          "number": 6,
-          "name": "Software Automation · Set B",
-          "count": 150,
-          "file": "data/se-6.json",
-          "topics": [
-            "DevOps, RPA, BPA and MLOps",
+            "Application and analysis",
             "Training types, analytics and applications",
             "Models and algorithms",
-            "Programming ML with OOP",
-            "Impact, human behaviour and bias",
-            "Application and analysis",
             "Mixed review — Software Automation"
           ]
         },
         {
-          "number": 7,
+          "number": 4,
           "name": "The Software Engineering Project",
-          "count": 100,
-          "file": "data/se-7.json",
+          "count": 250,
+          "file": "data/se-4.json",
           "topics": [
             "Identifying and defining",
             "Research, planning and approaches",
             "Modelling tools",
             "Producing and implementing",
             "Testing and evaluating",
-            "Application and analysis"
-          ]
-        },
-        {
-          "number": 8,
-          "name": "The Software Engineering Project · Set B",
-          "count": 150,
-          "file": "data/se-8.json",
-          "topics": [
+            "Application and analysis",
             "Identifying, defining and planning",
             "Modelling and design",
             "Producing, implementing and testing",

@@ -171,7 +171,7 @@ function parseBank(subject) {
   }
 
   // Structural assertions — loud failure beats a silently short bank.
-  // Now expecting 8 modules (4 pairs of Set A and Set B)
+  // Expecting 8 modules (4 pairs of Set A and Set B), which we'll combine into 4
   if (modules.length !== 8) {
     throw new BuildError(`${file}: expected 8 modules (4 pairs of Set A/B), found ${modules.length}`);
   }
@@ -200,17 +200,19 @@ function parseBank(subject) {
   }
   if (expected !== 1001) throw new BuildError(`${file}: expected 1000 questions, found ${expected - 1}`);
 
-  // Renumber modules 1-8 (they come from markdown as 1, 1 Set B, 2, 2 Set B, etc.)
-  const renumberedModules = [];
-  for (let i = 0; i < modules.length; i++) {
-    renumberedModules.push({
-      number: i + 1,
-      name: modules[i].name,
-      questions: modules[i].questions,
+  // Combine Set A and Set B into 4 modules (250 questions each)
+  const combinedModules = [];
+  for (let i = 0; i < 8; i += 2) {
+    const setA = modules[i];
+    const setB = modules[i + 1];
+    combinedModules.push({
+      number: (i / 2) + 1,
+      name: setA.name.replace(' · Set A', ''), // Remove the "· Set A" suffix
+      questions: [...setA.questions, ...setB.questions],
     });
   }
 
-  return renumberedModules;
+  return combinedModules;
 }
 
 function main() {
@@ -252,7 +254,7 @@ function main() {
   }
 
   writeFileSync(join(dataDir, 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-  console.log('\nWrote data/index.json and 20 module files.');
+  console.log('\nWrote data/index.json and 8 module files.');
 }
 
 try {

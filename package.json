@@ -1,0 +1,19 @@
+{
+  "name": "study",
+  "version": "1.0.0",
+  "description": "Offline revision PWA for HSC Enterprise Computing and Software Engineering",
+  "private": true,
+  "scripts": {
+    "build": "node tools/build-bank.mjs",
+    "build-icons": "node tools/build-icons.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/w1llim/study.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/analytics": "^1.4.1"
+  }
+}

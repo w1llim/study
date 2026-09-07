@@ -8,7 +8,7 @@
  * changes, so an unchanged name serves stale code forever.
  */
 
-const CACHE = 'study-v5';
+const CACHE = 'study-v6';
 
 const PRECACHE = [
   './',

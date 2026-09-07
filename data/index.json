@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-12",
+  "version": "2026-09-07",
   "subjects": [
     {
       "id": "ec",
@@ -162,6 +162,76 @@
             "Modelling and design",
             "Producing, implementing and testing",
             "Application, analysis and mixed review"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cc",
+      "name": "Certified in Cybersecurity",
+      "short": "CC",
+      "modules": [
+        {
+          "number": 1,
+          "name": "Security Principles",
+          "count": 25,
+          "file": "data/cc-1.json",
+          "topics": [
+            "Cybersecurity concepts",
+            "Risk management",
+            "Governance concepts",
+            "Cybersecurity controls",
+            "Professional and ethical conduct"
+          ]
+        },
+        {
+          "number": 2,
+          "name": "Security Governance",
+          "count": 25,
+          "file": "data/cc-2.json",
+          "topics": [
+            "Governance, risk and compliance",
+            "Redundancy, business continuity and disaster recovery",
+            "Security awareness",
+            "Measuring cybersecurity effectiveness"
+          ]
+        },
+        {
+          "number": 3,
+          "name": "Identity and Access Management",
+          "count": 25,
+          "file": "data/cc-3.json",
+          "topics": [
+            "Authentication and the access chain",
+            "Identity life cycle management",
+            "Least privilege and separation of duties",
+            "Access control models"
+          ]
+        },
+        {
+          "number": 4,
+          "name": "Networking and Cloud Security",
+          "count": 25,
+          "file": "data/cc-4.json",
+          "topics": [
+            "OSI, TCP/IP and addressing",
+            "Ports, firewalls and detection",
+            "Wireless, embedded systems and network attacks",
+            "Segmentation, defence in depth and Zero Trust",
+            "Cloud security"
+          ]
+        },
+        {
+          "number": 5,
+          "name": "Security Operations and Incident Response",
+          "count": 25,
+          "file": "data/cc-5.json",
+          "topics": [
+            "Data security and cryptography",
+            "Security operations, triage and threat intelligence",
+            "Incident response",
+            "Asset protection",
+            "Security testing"
           ]
         }
       ]

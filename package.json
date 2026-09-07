@@ -1,19 +1,17 @@
 {
   "name": "study",
   "version": "1.0.0",
-  "description": "Offline revision PWA for HSC Enterprise Computing and Software Engineering",
+  "description": "Offline revision PWA for HSC Enterprise Computing, Software Engineering and ISC2 Certified in Cybersecurity",
   "private": true,
   "scripts": {
-    "build": "node tools/build-bank.mjs",
-    "build-icons": "node tools/build-icons.mjs"
+    "//": "There is deliberately no `build` script. data/ is generated locally from the Obsidian source notes and committed, so Vercel has nothing to build — see vercel.json. `build-bank` only works on a machine that has the vault.",
+    "build-bank": "node tools/build-bank.mjs",
+    "build-icons": "node tools/build-icons.mjs",
+    "dev": "python -m http.server 8000"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/w1llim/study.git"
   },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@vercel/analytics": "^1.4.1"
-  }
+  "license": "ISC"
 }

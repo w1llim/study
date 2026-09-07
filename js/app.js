@@ -123,7 +123,7 @@ async function renderHome() {
   const index = await getIndex();
   const nodes = [
     el('h1', { text: 'Question Bank' }),
-    el('p', { class: 'lede', text: '2000 multiple-choice questions across Enterprise Computing and Software Engineering. Pick a module — questions are randomised and never repeat until you have seen them all.' }),
+    el('p', { class: 'lede', text: '2125 multiple-choice questions across Enterprise Computing, Software Engineering and Certified in Cybersecurity. Pick a module — questions are randomised and never repeat until you have seen them all.' }),
   ];
 
   const parked = loadSession();
@@ -224,7 +224,7 @@ function renderResetPanel(index) {
     ),
     el('button', {
       class: 'btn btn-danger', type: 'button', text: 'Clear everything',
-      on: { click: () => confirmReset('Clear stored progress for both subjects? Every question becomes unseen again.', resetAll) },
+      on: { click: () => confirmReset('Clear stored progress for all subjects? Every question becomes unseen again.', resetAll) },
     }),
   ]);
 

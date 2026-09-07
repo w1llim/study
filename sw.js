@@ -32,6 +32,11 @@ const PRECACHE = [
   'data/se-2.json',
   'data/se-3.json',
   'data/se-4.json',
+  'data/cc-1.json',
+  'data/cc-2.json',
+  'data/cc-3.json',
+  'data/cc-4.json',
+  'data/cc-5.json',
 ];
 
 self.addEventListener('install', (event) => {

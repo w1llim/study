@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 // Converts the Obsidian question-bank markdown notes into the JSON the site loads.
-// Node stdlib only. Run from anywhere: node tools/build-bank.mjs [ecPath] [sePath]
+// Node stdlib only. Run from anywhere: node tools/build-bank.mjs [--<subject>=<path>...]
 //
 // The source grammar (verified across all 800 questions):
 //   # Module <n> — <name> (Q<a>–Q<b>)      <- en dash
 //   ## <topic>
 //   **Q<n>** <stem on one line>
 //   (A) ... (B) ... (C) ... (D) ...        <- 1, 2 or 4 lines
+//
+// Each subject declares its own shape (module count, questions per module and
+// whether modules are authored as Set A / Set B pairs) in SUBJECTS below.
 //
 //   > [!success]- Answer
 //   >
@@ -28,12 +31,23 @@ const SUBJECTS = [
     name: 'Enterprise Computing',
     short: 'EC',
     source: join(VAULT, 'Enterprise Computing', '06 EC Question Bank.md'),
+    // Four modules, each authored as a "Set A" (100) + "Set B" (150) pair.
+    shape: { combineSets: true, modules: 4, setSizes: [100, 150] },
   },
   {
     id: 'se',
     name: 'Software Engineering',
     short: 'SE',
     source: join(VAULT, 'Software Engineering', '07 SE Question Bank.md'),
+    shape: { combineSets: true, modules: 4, setSizes: [100, 150] },
+  },
+  {
+    id: 'cc',
+    name: 'Certified in Cybersecurity',
+    short: 'CC',
+    source: join(VAULT, 'CC', 'CC Question Bank.md'),
+    // One module per ISC2 exam domain, 25 questions each, no Set A/B split.
+    shape: { combineSets: false, modules: 5, perModule: 25 },
   },
 ];
 
@@ -171,17 +185,21 @@ function parseBank(subject) {
   }
 
   // Structural assertions — loud failure beats a silently short bank.
-  // Expecting 8 modules (4 pairs of Set A and Set B), which we'll combine into 4
-  if (modules.length !== 8) {
-    throw new BuildError(`${file}: expected 8 modules (4 pairs of Set A/B), found ${modules.length}`);
+  const { combineSets, modules: wantModules, setSizes, perModule } = subject.shape;
+  const wantParsed = combineSets ? wantModules * 2 : wantModules;
+  if (modules.length !== wantParsed) {
+    throw new BuildError(
+      `${file}: expected ${wantParsed} "# Module" sections${combineSets ? ` (${wantModules} Set A/B pairs)` : ''}, found ${modules.length}`,
+    );
   }
 
-  // Verify the structure: pairs of (Set A: 100 questions, Set B: 150 questions)
+  const sizeOf = (i) => (combineSets ? setSizes[i % 2] : perModule);
+  const wantTotal = modules.reduce((n, _, i) => n + sizeOf(i), 0);
+
   let expected = 1;
   for (let i = 0; i < modules.length; i++) {
     const m = modules[i];
-    const isSetB = i % 2 === 1;
-    const expectedCount = isSetB ? 150 : 100;
+    const expectedCount = sizeOf(i);
 
     if (m.questions.length !== expectedCount) {
       throw new BuildError(`${file}: module ${i + 1} has ${m.questions.length} questions, expected ${expectedCount}`);
@@ -189,7 +207,7 @@ function parseBank(subject) {
 
     for (const q of m.questions) {
       if (q.id !== expected) {
-        throw new BuildError(`${file}: expected Q${expected}, found Q${q.id} (ids must be contiguous 1–1000)`);
+        throw new BuildError(`${file}: expected Q${expected}, found Q${q.id} (ids must be contiguous 1–${wantTotal})`);
       }
       if (q.options.length !== 4) {
         throw new BuildError(`${file}: Q${q.id} has ${q.options.length} options`);
@@ -198,15 +216,19 @@ function parseBank(subject) {
       expected++;
     }
   }
-  if (expected !== 1001) throw new BuildError(`${file}: expected 1000 questions, found ${expected - 1}`);
+  if (expected !== wantTotal + 1) {
+    throw new BuildError(`${file}: expected ${wantTotal} questions, found ${expected - 1}`);
+  }
 
-  // Combine Set A and Set B into 4 modules (250 questions each)
+  if (!combineSets) return modules;
+
+  // Combine each Set A / Set B pair into a single module.
   const combinedModules = [];
-  for (let i = 0; i < 8; i += 2) {
+  for (let i = 0; i < modules.length; i += 2) {
     const setA = modules[i];
     const setB = modules[i + 1];
     combinedModules.push({
-      number: (i / 2) + 1,
+      number: i / 2 + 1,
       name: setA.name.replace(' · Set A', ''), // Remove the "· Set A" suffix
       questions: [...setA.questions, ...setB.questions],
     });
@@ -216,9 +238,14 @@ function parseBank(subject) {
 }
 
 function main() {
-  const argv = process.argv.slice(2);
-  if (argv[0]) SUBJECTS[0].source = argv[0];
-  if (argv[1]) SUBJECTS[1].source = argv[1];
+  // Source overrides are keyed by subject id: --cc="path/to/CC Question Bank.md"
+  for (const arg of process.argv.slice(2)) {
+    const m = /^--([a-z0-9]+)=(.+)$/.exec(arg);
+    if (!m) throw new BuildError(`unrecognised argument "${arg}" (expected --<subject>=<path>)`);
+    const subject = SUBJECTS.find((s) => s.id === m[1]);
+    if (!subject) throw new BuildError(`unknown subject "${m[1]}" (known: ${SUBJECTS.map((s) => s.id).join(', ')})`);
+    subject.source = m[2];
+  }
 
   const dataDir = join(ROOT, 'data');
 
@@ -250,11 +277,12 @@ function main() {
     }
 
     index.subjects.push(entry);
-    console.log(`${subject.short} 1000 ✓`);
+    console.log(`${subject.short} ${entry.modules.reduce((n, m) => n + m.count, 0)} ✓`);
   }
 
+  const files = parsed.reduce((n, { modules }) => n + modules.length, 0);
   writeFileSync(join(dataDir, 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-  console.log('\nWrote data/index.json and 8 module files.');
+  console.log(`\nWrote data/index.json and ${files} module files.`);
 }
 
 try {

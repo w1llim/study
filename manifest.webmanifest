@@ -1,7 +1,7 @@
 {
-  "name": "Question Bank — EC & SE revision",
+  "name": "Question Bank — EC, SE & CC revision",
   "short_name": "Question Bank",
-  "description": "800 offline multiple-choice questions for HSC Enterprise Computing and Software Engineering.",
+  "description": "2125 offline multiple-choice questions for HSC Enterprise Computing and Software Engineering, and ISC2 Certified in Cybersecurity.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

@@ -655,8 +655,4 @@ window.addEventListener('hashchange', route);
 applyTheme(getSettings().theme);
 route();
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch((err) => console.warn('Service worker failed:', err));
-  });
-}
+// Install, update and offline chrome live in js/pwa.js, loaded alongside this.

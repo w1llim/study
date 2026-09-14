@@ -1,22 +1,31 @@
 /* Service worker: full offline, including every question.
  *
- * The whole app is ~400 KB of JSON plus a small shell, so it is all precached
+ * The whole app is ~1.3 MB of JSON plus a small shell, so it is all precached
  * on install. That means the first visit is the only one that needs a network,
  * and every module works on a train with no signal.
  *
  * BUMP CACHE ON EVERY DEPLOY — the old cache is only discarded when the name
  * changes, so an unchanged name serves stale code forever.
+ *
+ * Update model: a new worker installs in the background and then *waits*. It
+ * never swaps the assets out from under a session in progress. js/pwa.js spots
+ * the waiting worker, offers "Update", and posts SKIP_WAITING when the user
+ * accepts — so a reload is always a deliberate act, and a half-answered quiz is
+ * never rebuilt against a different question bank.
  */
 
-const CACHE = 'study-v6';
+const CACHE = 'study-v7';
 
-const PRECACHE = [
+/* The app shell: if any of this is missing the install must fail, because a
+   partially cached shell is worse than no offline mode at all. */
+const SHELL = [
   './',
   'index.html',
   'manifest.webmanifest',
   'css/styles.css',
   'js/app.js',
   'js/bank.js',
+  'js/pwa.js',
   'js/quiz.js',
   'js/store.js',
   'icons/favicon.svg',
@@ -24,6 +33,12 @@ const PRECACHE = [
   'icons/icon-512.png',
   'icons/icon-maskable-512.png',
   'data/index.json',
+];
+
+/* The question banks: cached one by one and best-effort. A single failed module
+   leaves the other twelve offline-ready and is refetched on first use, rather
+   than aborting the install and leaving the visitor with no service worker. */
+const DATA = [
   'data/ec-1.json',
   'data/ec-2.json',
   'data/ec-3.json',
@@ -39,13 +54,19 @@ const PRECACHE = [
   'data/cc-5.json',
 ];
 
+// Bypass the HTTP cache so a deploy never precaches yesterday's files.
+const fresh = (path) => new Request(path, { cache: 'reload' });
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE);
-      // Bypass the HTTP cache so a deploy never precaches yesterday's files.
-      await cache.addAll(PRECACHE.map((path) => new Request(path, { cache: 'reload' })));
-      await self.skipWaiting();
+      await cache.addAll(SHELL.map(fresh));
+      await Promise.all(
+        DATA.map((path) => cache.add(fresh(path)).catch((err) => {
+          console.warn('Precache skipped', path, err);
+        })),
+      );
     })(),
   );
 });
@@ -58,6 +79,11 @@ self.addEventListener('activate', (event) => {
       await self.clients.claim();
     })(),
   );
+});
+
+/* The page's half of the update handshake — see js/pwa.js. */
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING' || event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -98,7 +124,7 @@ self.addEventListener('fetch', (event) => {
           cache.put(request, response.clone());
         }
         return response;
-      } catch (err) {
+      } catch {
         return new Response('Offline and not cached.', {
           status: 504,
           headers: { 'Content-Type': 'text/plain; charset=utf-8' },

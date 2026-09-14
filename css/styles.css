@@ -468,3 +468,61 @@ legend { padding: 0; font-size: .8125rem; color: var(--text-dim); margin-bottom:
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* ---------- PWA chrome: install, offline, update toast ---------- */
+
+.install-btn {
+  min-height: 2.25rem;
+  padding: .35rem .8rem;
+  font-size: .875rem;
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+}
+.install-btn:hover { color: var(--text); border-color: var(--border-strong); }
+
+.net-status {
+  font-size: .8125rem; font-weight: 560;
+  color: var(--bad);
+  background: var(--bad-soft);
+  border: 1px solid color-mix(in srgb, var(--bad) 35%, transparent);
+  border-radius: 999px; padding: .2rem .65rem;
+}
+
+/* Pinned above the safe area so the update offer never sits under a home bar. */
+.toast-host {
+  position: fixed; z-index: 30;
+  left: max(.9rem, env(safe-area-inset-left));
+  right: max(.9rem, env(safe-area-inset-right));
+  bottom: calc(.9rem + env(safe-area-inset-bottom));
+  display: grid; justify-items: center;
+  pointer-events: none;
+}
+.toast-host:empty { display: none; }
+
+.toast {
+  pointer-events: auto;
+  display: flex; align-items: center; gap: .75rem;
+  width: 100%; max-width: 30rem;
+  padding: .7rem .7rem .7rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.toast-text { margin: 0; flex: 1; font-size: .9375rem; }
+.toast-action { min-height: 2.25rem; padding: .35rem .9rem; font-size: .875rem; }
+.toast-close {
+  flex: none;
+  width: 2rem; height: 2rem;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%;
+  background: transparent; color: var(--text-dim);
+  font: inherit; font-size: 1.25rem; line-height: 1; cursor: pointer;
+}
+.toast-close:hover { background: var(--surface-2); color: var(--text); }
+
+@media (max-width: 26rem) {
+  .brand-text { font-size: .9375rem; }
+  .install-btn { padding: .35rem .6rem; }
+}

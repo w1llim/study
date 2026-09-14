@@ -34,7 +34,7 @@ Other things worth knowing:
 - **Progress is shared** between the per-module and All-modules screens. Answering a Module 2
   question inside a mixed run marks it seen on the Module 2 card too.
 - The theme button in the top bar cycles auto → light → dark.
-- It is installable and works fully offline after one online load.
+- It is installable and works fully offline after one online load — see **Install and offline** below.
 
 ## Where progress lives
 
@@ -61,6 +61,7 @@ index.html              app shell
 css/styles.css          one stylesheet, light + dark
 js/app.js               hash router + rendering
 js/bank.js              loads data/*.json, tags each question with its module
+js/pwa.js               install prompt, update handshake, offline indicator
 js/quiz.js              pool selection, shuffling, scoring (no DOM, no storage)
 js/store.js             localStorage progress + settings
 data/*.json             generated — do not hand-edit
@@ -131,6 +132,33 @@ would make those explanations wrong. Only question order is randomised.
 
 Never edit `data/*.json` directly; the next build overwrites it.
 
+## Install and offline
+
+`sw.js` precaches the shell and every question on install, so after one online load the app
+runs with no network at all — including deep links and full reloads. `js/pwa.js` owns
+everything about being an app rather than a page, and is deliberately independent of the
+router:
+
+- **Install.** The `Install` button in the top bar appears once the browser reports the app as
+  installable, and drives the deferred `beforeinstallprompt`. iOS fires no such event, so there
+  the same button explains the Share → Add to Home Screen route instead. Both disappear once
+  the app is installed, or when it is already running standalone.
+- **Updates.** A new worker installs in the background and then **waits** — it never swaps the
+  question bank out from under a session in progress. The page notices the waiting worker and
+  offers *Update*; accepting posts `SKIP_WAITING`, and the reload happens on `controllerchange`.
+  A returning visitor therefore sees a prompt rather than a silently half-updated app, and a
+  first visit sees nothing. The app also re-checks for a new deploy when it is reopened, at most
+  hourly.
+- **Offline.** An `Offline` pill appears in the top bar when the connection drops. It is
+  reassurance, not an error — nothing about revising needs the network.
+- **Durability.** `navigator.storage.persist()` is requested on load, so a browser reclaiming
+  space is less likely to evict the cached banks or a term of saved progress.
+
+The precache is split in two. The shell (HTML, CSS, JS, icons, `data/index.json`) must cache in
+full or the install fails, because a half-cached shell is worse than no offline mode. The
+thirteen question banks are cached individually and best-effort: one failure leaves the other
+twelve offline-ready and is refetched on first use, rather than aborting the install.
+
 ## Running locally
 
 Needs a real HTTP server — ES modules and service workers do not work over `file://`.
@@ -153,21 +181,28 @@ so it is generated **locally and committed**. Never wire `build-bank.mjs` into a
 it cannot run in CI and will fail every deployment with `ENOENT` on the vault path.
 
 **Bump `CACHE` in `sw.js`** (`study-v1` → `study-v2`, …) whenever you change any file in
-`PRECACHE`. The old cache is only discarded when the name changes, so skipping this leaves
-installed copies serving the previous version indefinitely.
+`SHELL` or `DATA`. The old cache is only discarded when the name changes, so skipping this
+leaves installed copies serving the previous version indefinitely — and because a byte-identical
+`sw.js` is not treated as an update, no one is offered the new version at all.
 
 ## Troubleshooting
 
-**The deployed site still shows the old version.** `CACHE` in `sw.js` was not bumped, so the
-service worker is serving its existing copy. Bump it and redeploy. To force a local fix:
-DevTools → Application → Service Workers → Unregister, then hard-reload.
+**The deployed site still shows the old version.** `CACHE` in `sw.js` was not bumped, so
+`sw.js` is byte-identical, no update is detected, and the service worker keeps serving its
+existing copy. Bump it and redeploy. To force a local fix: DevTools → Application → Service
+Workers → Unregister, then hard-reload.
+
+**The update prompt never appears.** It is shown only to a visitor who already has a worker
+installed — a first visit installs silently and correctly shows nothing. Check DevTools →
+Application → Service Workers for a worker stuck in *waiting*; if one is there and no toast
+appeared, `js/pwa.js` did not load.
 
 **"You have seen every question in this module."** The unseen pool is empty. Use **Endless**,
 **Redo whole module**, or clear that subject from the home screen.
 
 **Offline does not work.** The app must be loaded online once so the service worker can
 precache the shell and all 13 data files. Check DevTools → Application → Cache Storage for a
-single `study-vN` holding 26 entries (shell + 13 modules + index).
+single `study-vN` holding 27 entries (14 shell + 13 modules).
 
 **Progress vanished.** It is per-browser `localStorage` — a different browser, a different
 device, or clearing site data all start from zero. It is deliberately not synced.

@@ -76,10 +76,13 @@ troubleshooting — read it before making changes. The short version:
    That writes `data/bio-*.json` and regenerates `data/index.json` (subjects, modules, counts,
    deduplicated topic lists, and a fresh `version` date). Nothing under `data/` is hand-authored.
 
-4. **Register the new data files with the service worker** — `sw.js`'s `PRECACHE` array
-   lists every file needed for offline use. Add `data/bio-1.json` etc., and **bump `CACHE`**
+4. **Register the new data files with the service worker** — `sw.js` splits the precache in
+   two: `SHELL` (must all cache, or the install fails) and `DATA` (the question banks, cached
+   best-effort one by one). Add `data/bio-1.json` etc. to **`DATA`**, and **bump `CACHE`**
    (`study-vN` → `study-vN+1`) so installed copies pick up the new files — see the
-   "Deploying" section of `README.md`.
+   "Deploying" section of `README.md`. Bumping `CACHE` is also what makes `sw.js` differ byte
+   for byte, which is what triggers the update prompt in `js/pwa.js`; skip it and nobody is
+   offered the new subject.
 
 5. **Add the subject's colour to `css/styles.css`** — theming is keyed by subject id. Add a
    `--bio` / `--bio-soft` pair to each of the four colour blocks (light `:root`, the
@@ -115,5 +118,11 @@ whole reason the generated files are in version control.
   script, and rebuild.
 - Keep `js/quiz.js` free of DOM and storage concerns — it's pure pool/scoring logic, which
   is what makes it easy to reason about independent of a subject's content.
+- Keep `js/pwa.js` free of quiz and routing concerns, and `js/app.js` free of service-worker
+  concerns. `pwa.js` touches only the three chrome elements it owns — `#install-btn`,
+  `#net-status`, `#toast-host`.
+- Never call `skipWaiting()` from the service worker's `install` handler. A new worker must
+  wait until the user accepts the update, or a deploy rebuilds a half-answered session against
+  a different question bank.
 - No build step, no dependencies to add. If a task seems to call for a framework or a
   package, prefer doing it in vanilla JS consistent with the existing style instead.
